@@ -49,7 +49,8 @@ export function Navbar() {
             </ToggleGroupItem>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-5" />
+          {/* A fixed height with the separator's stretch alignment pins the line to the top. */}
+          <Separator orientation="vertical" className="my-auto h-5" />
 
           <Button
             nativeButton={false}

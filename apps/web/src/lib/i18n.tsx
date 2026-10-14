@@ -1,7 +1,5 @@
 import * as React from "react"
 
-export const CONTACT_EMAIL = "louis-etienne.messier@kernelium.ca"
-
 export type Locale = "en" | "fr"
 
 const dictionary = {
@@ -20,9 +18,13 @@ const dictionary = {
       message: "Message",
       messagePlaceholder: "How can we help?",
       submit: "Send message",
-      successTitle: "Almost there",
-      successDescription:
-        "Your email app should open with your message ready to send.",
+      sending: "Sending…",
+      successTitle: "Message sent",
+      successDescription: "Thanks. We'll get back to you soon.",
+      errorTitle: "Message not sent",
+      errorDescription: "Something went wrong. Please try again.",
+      activationDescription:
+        "Confirm the activation email, then try again.",
     },
     footer: { rights: "All rights reserved." },
   },
@@ -42,9 +44,13 @@ const dictionary = {
       message: "Message",
       messagePlaceholder: "Comment pouvons-nous vous aider ?",
       submit: "Envoyer le message",
-      successTitle: "Presque terminé",
-      successDescription:
-        "Votre application de courriel devrait s'ouvrir avec votre message prêt à envoyer.",
+      sending: "Envoi…",
+      successTitle: "Message envoyé",
+      successDescription: "Merci. Nous vous répondrons bientôt.",
+      errorTitle: "Message non envoyé",
+      errorDescription: "Une erreur s'est produite. Veuillez réessayer.",
+      activationDescription:
+        "Confirmez le courriel d'activation, puis réessayez.",
     },
     footer: { rights: "Tous droits réservés." },
   },

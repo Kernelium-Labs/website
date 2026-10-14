@@ -15,9 +15,10 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { MailCheck, Send } from "lucide-react"
+import { Check, CircleAlert, CircleCheck, Send } from "lucide-react"
 
-import { CONTACT_EMAIL, useI18n } from "@/lib/i18n"
+import { useI18n } from "@/lib/i18n"
+import { sendContactMessage } from "@/lib/send-contact"
 
 export function scrollToContact(event: React.MouseEvent) {
   event.preventDefault()
@@ -29,22 +30,34 @@ export function scrollToContact(event: React.MouseEvent) {
 
 export function ContactForm() {
   const { t } = useI18n()
-  const [sent, setSent] = React.useState(false)
+  const [status, setStatus] = React.useState<
+    "idle" | "sending" | "sent" | "error" | "activation"
+  >("idle")
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const name = String(data.get("name") ?? "")
-    const email = String(data.get("email") ?? "")
-    const message = String(data.get("message") ?? "")
+    const form = event.currentTarget
+    const data = new FormData(form)
+    setStatus("sending")
 
-    const subject = `Kernelium – ${name}`
-    const body = `${message}\n\n—\n${name}\n${email}`
-
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`
-    setSent(true)
+    try {
+      const result = await sendContactMessage({
+        data: {
+          name: String(data.get("name") ?? ""),
+          email: String(data.get("email") ?? ""),
+          message: String(data.get("message") ?? ""),
+          company: String(data.get("company") ?? ""),
+        },
+      })
+      if (!result.ok) {
+        setStatus(result.reason === "activation" ? "activation" : "error")
+        return
+      }
+      form.reset()
+      setStatus("sent")
+    } catch {
+      setStatus("error")
+    }
   }
 
   return (
@@ -58,16 +71,21 @@ export function ContactForm() {
           <CardDescription>{t.contact.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={handleSubmit}
+            onChange={() => status === "sent" && setStatus("idle")}
+          >
+            <input
+              name="company"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden
+              className="hidden"
+            />
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="name">{t.contact.name}</FieldLabel>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  autoComplete="name"
-                />
+                <Input id="name" name="name" required autoComplete="name" />
               </Field>
               <Field>
                 <FieldLabel htmlFor="email">{t.contact.email}</FieldLabel>
@@ -90,9 +108,9 @@ export function ContactForm() {
                 />
               </Field>
 
-              {sent && (
+              {status === "sent" && (
                 <Alert>
-                  <MailCheck />
+                  <CircleCheck />
                   <AlertTitle>{t.contact.successTitle}</AlertTitle>
                   <AlertDescription>
                     {t.contact.successDescription}
@@ -100,9 +118,35 @@ export function ContactForm() {
                 </Alert>
               )}
 
-              <Button type="submit" size="lg" className="w-full">
-                <Send data-icon="inline-start" />
-                {t.contact.submit}
+              {(status === "error" || status === "activation") && (
+                <Alert variant="destructive">
+                  <CircleAlert />
+                  <AlertTitle>{t.contact.errorTitle}</AlertTitle>
+                  <AlertDescription>
+                    {status === "activation"
+                      ? t.contact.activationDescription
+                      : t.contact.errorDescription}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={status === "sending"}
+              >
+                {status === "sent" ? (
+                  <>
+                    <Check data-icon="inline-start" />
+                    {t.contact.successTitle}
+                  </>
+                ) : (
+                  <>
+                    <Send data-icon="inline-start" />
+                    {status === "sending" ? t.contact.sending : t.contact.submit}
+                  </>
+                )}
               </Button>
             </FieldGroup>
           </form>
