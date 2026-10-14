@@ -1,1 +1,0 @@
-export type RoutesConfig = Record<`/${string}`, boolean>;
